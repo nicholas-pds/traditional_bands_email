@@ -147,7 +147,7 @@ def send_summary_email(
             <p style="font-size:12px; color:#7f8c8d; margin:0;">
                 This is an automated report. Do not reply.
             </p>
-            <p style="margin:10px 0 0;"><strong>Best Regards,</strong><br>{from_name}</p>
+            <p style="margin:10px 0 0;"><strong>Regards,</strong><br>{from_name}</p>
         </div>
     </body>
     </html>
