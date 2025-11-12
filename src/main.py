@@ -1,7 +1,8 @@
 # src/main.py
 from pathlib import Path
 from .db_handler import execute_sql_to_dataframe
-from .py_handler import location_sum_row  # Matches function name
+from .py_handler import location_sum_row
+from .email_handler import email_dataframes
 
 def main():
     """Main function to orchestrate the daily process."""
@@ -12,6 +13,10 @@ def main():
     
     # --- Configuration ---
     SHEET_NAME = "Import"  # The tab name in your Google Sheet
+    # ----- EMAIL RECIPIENTS -----
+    RECIPIENTS = ["nick@partnersdentalstudio.com"]
+    #RECIPIENTS = ["nick@partnersdentalstudio.com", "emily@partnersdentalstudio.com"]
+    #RECIPIENTS = ["nick@partnersdentalstudio.com","iryna@partnersdentalstudio.com","3ddesign@partnersdentalstudio.com"] # Add more recipients as needed
     # ---------------------------------------------------
     
     print(f"Attempting to load SQL file from: {SQL_FILE_PATH}")
@@ -48,6 +53,18 @@ def main():
 
     # Next: Email dataframes
     print("\nstop here")
+    # ----- EMAIL -----
+    try:
+        email_dataframes(
+            raw_df=data_df,
+            summary_df=locations_count_df,
+            recipients=RECIPIENTS,
+            subject="Daily Traditional Bands Summary",
+            from_name="Partners Dental Report Bot",
+        )
+        print("Email sent successfully.")
+    except Exception as e:
+        print(f"Failed to send email: {e}")
 
 if __name__ == "__main__":
     main()
