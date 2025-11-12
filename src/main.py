@@ -15,6 +15,7 @@ def main():
     SHEET_NAME = "Import"  # The tab name in your Google Sheet
     # ----- EMAIL RECIPIENTS -----
     RECIPIENTS = ["nick@partnersdentalstudio.com"]
+    #RECIPIENTS = ["nick@partnersdentalstudio.com", "sarah@partnersdentalstudio.com"]
     #RECIPIENTS = ["nick@partnersdentalstudio.com", "emily@partnersdentalstudio.com"]
     #RECIPIENTS = ["nick@partnersdentalstudio.com","iryna@partnersdentalstudio.com","3ddesign@partnersdentalstudio.com"] # Add more recipients as needed
     # ---------------------------------------------------
