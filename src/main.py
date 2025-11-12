@@ -1,7 +1,7 @@
 # src/main.py
 from pathlib import Path
 from .db_handler import execute_sql_to_dataframe
-#from .sheets_handler import SheetsHandler
+from .py_handler import location_sum_row  # Matches function name
 
 def main():
     """Main function to orchestrate the daily process."""
@@ -22,16 +22,32 @@ def main():
     try:
         data_df = execute_sql_to_dataframe(str(SQL_FILE_PATH))
     except FileNotFoundError:
-        print(f"🚨 ERROR: SQL file not found at the expected path: {SQL_FILE_PATH}")
+        print(f"ERROR: SQL file not found at the expected path: {SQL_FILE_PATH}")
         return
     except Exception as e:
-        print(f"🚨 ERROR during database operation: {e}")
+        print(f"ERROR during database operation: {e}")
         return
 
-    if not data_df.empty:
-        print("\n--- DataFrame Head ---")
-        print(data_df.head())
-        print(f"\nTotal rows retrieved: {len(data_df)}")
-        
-        # Step 2: Upload to Google Sheets
-        print("\n--- stop here ---")
+    if data_df.empty:
+        print("No data returned from query.")
+        return
+
+    print("\n--- DataFrame Head ---")
+    print(data_df.head())
+    print(f"\nTotal rows retrieved: {len(data_df)}")
+    
+    # Step 2: Process with py_handler
+    print("\n--- Processing with py_handler ---")
+    try:
+        locations_count_df = location_sum_row(data_df)
+        print("\n--- Locations Count DataFrame ---")
+        print(locations_count_df)
+    except Exception as e:
+        print(f"ERROR in location_sum_row: {e}")
+        return
+
+    # Next: Email dataframes
+    print("\nstop here")
+
+if __name__ == "__main__":
+    main()
