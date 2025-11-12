@@ -8,7 +8,8 @@ SELECT
 	COUNT(DISTINCT CASE WHEN cll.[Description] = 'Design Cart'        THEN ca.CaseNumber END) AS [DesignCart],
   COUNT(DISTINCT CASE WHEN cll.[Description] = '3D Design'          THEN ca.CaseNumber END) AS [3DDesign],
   COUNT(DISTINCT CASE WHEN cll.[Description] = '3D Manufacturing'   THEN ca.CaseNumber END) AS [3DManufacturing],
-	COUNT(DISTINCT CASE WHEN cll.[Description] = 'Metal Shelf'        THEN ca.CaseNumber END) AS [MetalShelf]
+	COUNT(DISTINCT CASE WHEN cll.[Description] = 'Metal Shelf'        THEN ca.CaseNumber END) AS [MetalShelf],
+  	COUNT(DISTINCT CASE WHEN cll.[Description] = 'Banding'        THEN ca.CaseNumber END) AS [BandingStation]
 
 
 FROM dbo.Cases AS ca
@@ -16,7 +17,7 @@ INNER JOIN dbo.CaseTasks AS ct
         ON ct.CaseID = ca.CaseID
 LEFT  JOIN dbo.CaseLogLocations AS cll
         ON ca.LastLocationID = cll.ID
-       AND cll.[Description] IN ('Metal Shelf', '3D Design', '3D Manufacturing', 'Design Cart')
+       AND cll.[Description] IN ('Metal Shelf', '3D Design', '3D Manufacturing', 'Design Cart', 'Banding')
 
 WHERE ct.Task = 'band'
   AND ct.CompleteDate IS NULL
