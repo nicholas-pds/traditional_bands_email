@@ -1,14 +1,14 @@
 SELECT
-    CAST(ca.ShipDate AS DATE)                                            AS ShipDate,
+    CAST(ca.ShipDate AS DATE) AS ShipDate,
 
     /* Total for all locations (your original column) */
-    COUNT(DISTINCT ca.CaseNumber)                                        AS AllLocations,
+    COUNT(DISTINCT ca.CaseNumber) AS AllLocations,
 
     /* One column per location – only cases whose LAST location matches */
 	COUNT(DISTINCT CASE WHEN cll.[Description] = 'Design Cart'        THEN ca.CaseNumber END) AS [DesignCart],
-    COUNT(DISTINCT CASE WHEN cll.[Description] = '3D Design'          THEN ca.CaseNumber END) AS [3DDesign],
-    COUNT(DISTINCT CASE WHEN cll.[Description] = '3D Manufacturing'   THEN ca.CaseNumber END) AS [3DManufacturing],
-	    COUNT(DISTINCT CASE WHEN cll.[Description] = 'Metal Shelf'        THEN ca.CaseNumber END) AS [MetalShelf]
+  COUNT(DISTINCT CASE WHEN cll.[Description] = '3D Design'          THEN ca.CaseNumber END) AS [3DDesign],
+  COUNT(DISTINCT CASE WHEN cll.[Description] = '3D Manufacturing'   THEN ca.CaseNumber END) AS [3DManufacturing],
+	COUNT(DISTINCT CASE WHEN cll.[Description] = 'Metal Shelf'        THEN ca.CaseNumber END) AS [MetalShelf]
 
 
 FROM dbo.Cases AS ca
@@ -20,6 +20,7 @@ LEFT  JOIN dbo.CaseLogLocations AS cll
 
 WHERE ct.Task = 'band'
   AND ct.CompleteDate IS NULL
+  AND ca.Status IN ('In Production')
   AND ca.ShipDate >= DATEADD(DAY, -1, CAST(GETDATE() AS DATE))   -- from yesterday
   AND ca.ShipDate <  DATEADD(DAY, 14, CAST(GETDATE() AS DATE))   -- up to (but not including) +14 days
 
