@@ -45,20 +45,18 @@ def main():
     # Step 2: Process with py_handler
     print("\n--- Processing with py_handler ---")
     try:
-        locations_count_df = location_sum_row(data_df)
-        print("\n--- Locations Count DataFrame ---")
-        print(locations_count_df)
+        summary_df = location_sum_row(data_df)
+        print("\n--- Summary DataFrame ---")
+        print(summary_df)
     except Exception as e:
         print(f"ERROR in location_sum_row: {e}")
         return
 
-    # Next: Email dataframes
-    print("\nstop here")
-    # ----- EMAIL -----
+    # ----- EMAIL: Only send summary_df -----
+    print("\nSending email with summary only...")
     try:
         email_dataframes(
-            raw_df=data_df,
-            summary_df=locations_count_df,
+            summary_df=summary_df,
             recipients=RECIPIENTS,
             subject="Daily Traditional Bands Summary",
             from_name="Partners Dental Report Bot",

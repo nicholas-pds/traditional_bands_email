@@ -10,24 +10,23 @@ import pandas as pd
 
 def _df_to_html_table(df: pd.DataFrame, title: str) -> str:
     """
-    Convert DataFrame to a clean, bordered, readable HTML table.
+    Convert DataFrame to a clean, bordered, readable HTML table with centered values.
     """
-    # Ensure columns are strings for header control
     df_display = df.copy()
     df_display.columns = [str(c) for c in df_display.columns]
 
-    # Generate HTML with explicit control
+    # Convert to HTML
     html_table = df_display.to_html(
         index=False,
         border=1,
         col_space="110px",
-        justify="center",
+        justify="center",  # This helps with column alignment
         classes="email-table",
         table_id=title.replace(" ", "_").lower(),
         escape=True
     )
 
-    # === EMAIL-SAFE, RESPONSIVE CSS ===
+    # === CENTERED & RESPONSIVE CSS ===
     style = """
     <style type="text/css">
     .email-container {
@@ -60,17 +59,7 @@ def _df_to_html_table(df: pd.DataFrame, title: str) -> str:
         box-shadow: 0 1px 4px rgba(0,0,0,0.1);
         border: 2px solid #ccc;
     }
-    table.email-table th {
-        background-color: #f8f9fa;
-        font-weight: bold;
-        text-align: left;
-        padding: 12px 10px;
-        border: 1px solid #ddd;
-        font-size: 13px;
-        color: #2c3e50;
-        white-space: normal;
-        word-wrap: break-word;
-    }
+    table.email-table th,
     table.email-table td {
         padding: 10px;
         border: 1px solid #ddd;
@@ -78,6 +67,17 @@ def _df_to_html_table(df: pd.DataFrame, title: str) -> str:
         word-wrap: break-word;
         max-width: 200px;
         min-width: 80px;
+        text-align: center !important;   /* CENTER ALL TEXT */
+        vertical-align: middle;
+    }
+    table.email-table th {
+        background-color: #f8f9fa;
+        font-weight: bold;
+        font-size: 13px;
+        color: #2c3e50;
+    }
+    table.email-table td {
+        font-size: 13px;
     }
     table.email-table tr:nth-child(even) {
         background-color: #f9f9f9;
@@ -85,7 +85,6 @@ def _df_to_html_table(df: pd.DataFrame, title: str) -> str:
     table.email-table tr:hover {
         background-color: #f5f5f5;
     }
-    /* Force Outlook to respect padding & borders */
     .mso-table-lspace, .mso-table-rspace { mso-table-lspace: 0pt; mso-table-rspace: 0pt; }
     </style>
     """
@@ -100,10 +99,10 @@ def _df_to_html_table(df: pd.DataFrame, title: str) -> str:
 
 
 def send_summary_email(
-    raw_df: pd.DataFrame,
     summary_df: pd.DataFrame,
     *,
-    subject: str = "Daily Traditional Bands Report",
+    raw_df: Optional[pd.DataFrame] = None,          # Now optional
+    subject: str = "Daily Traditional Bands Summary",
     to_emails: List[str],
     from_name: str = "Partners Dental Report Bot",
     from_email: Optional[str] = None,
@@ -125,7 +124,11 @@ def send_summary_email(
 
     # --- Build Tables ---
     summary_html = _df_to_html_table(summary_df, "Location Total Summary")
-    raw_html = _df_to_html_table(raw_df, "Results Grouped By Ship Date")
+
+    # Only include raw table if raw_df is provided
+    raw_html = ""
+    if raw_df is not None and not raw_df.empty:
+        raw_html = _df_to_html_table(raw_df, "Results Grouped By Ship Date")
 
     # --- Full HTML Email ---
     html_body = f"""
@@ -136,34 +139,39 @@ def send_summary_email(
     </head>
     <body style="margin:0; padding:20px; background:#f4f4f4; font-family:Arial,sans-serif;">
         <div class="email-container" style="max-width:960px; margin:0 auto; background:#fff; padding:30px; border-radius:8px; box-shadow:0 2px 12px rgba(0,0,0,0.1);">
-            <h1 class="email-header">Daily Traditional Bands Report</h1>
+            <h1 class="email-header">Daily Traditional Bands Summary</h1>
             <p>Hello,</p>
-            <p>Please find the daily report below with <strong>summary totals</strong> and <strong>results grouped by ship date</strong>.</p>
+            <p>Please find the daily summary report below.</p>
 
             {summary_html}
             {raw_html}
 
             <hr style="border:0; border-top:1px solid #eee; margin:40px 0;">
+            <p style="margin:10px 0 0;">{from_name}</p>
             <p style="font-size:12px; color:#7f8c8d; margin:0;">
                 This is an automated report. Do not reply.
             </p>
-            <p style="margin:10px 0 0;"><strong>Regards,</strong><br>{from_name}</p>
         </div>
     </body>
     </html>
     """
 
     plain_body = f"""
-Daily Traditional Bands Report
+Daily Traditional Bands Summary
 
 Location Totals:
 {summary_df.to_string(index=False)}
+"""
+
+    # Add raw data to plain text only if present
+    if raw_df is not None and not raw_df.empty:
+        plain_body += f"""
 
 Raw Query Results:
 {raw_df.to_string(index=False)}
-
-This is an automated report.
 """
+
+    plain_body += "\n\nThis is an automated report."
 
     # --- Send ---
     msg = EmailMessage()
@@ -178,14 +186,23 @@ This is an automated report.
         server.login(smtp_user, smtp_password)
         server.send_message(msg)
 
-    print(f"Emails sent to: {', '.join(to_emails)}")
+    print(f"Email sent to: {', '.join(to_emails)}")
 
 
-# --- Wrapper ---
+# --- Wrapper (now supports summary-only calls) ---
 def email_dataframes(
-    raw_df: pd.DataFrame,
     summary_df: pd.DataFrame,
     recipients: List[str],
+    *,
+    raw_df: Optional[pd.DataFrame] = None,   # Optional
     **kwargs,
 ) -> None:
-    send_summary_email(raw_df, summary_df, to_emails=recipients, **kwargs)
+    """
+    Convenience wrapper. Call with only `summary_df` to send summary-only email.
+    """
+    send_summary_email(
+        summary_df=summary_df,
+        raw_df=raw_df,
+        to_emails=recipients,
+        **kwargs
+    )
