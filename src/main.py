@@ -42,15 +42,17 @@ def main():
     print(data_df.head())
     print(f"\nTotal rows retrieved: {len(data_df)}")
     
-    # Step 2: Process with py_handler
-    print("\n--- Processing with py_handler ---")
-    try:
-        summary_df = location_sum_row(data_df)
-        print("\n--- Summary DataFrame ---")
-        print(summary_df)
-    except Exception as e:
-        print(f"ERROR in location_sum_row: {e}")
-        return
+    # # Step 2: Process with py_handler
+    # print("\n--- Processing with py_handler ---")
+    # try:
+    #     summary_df = location_sum_row(data_df)
+    #     print("\n--- Summary DataFrame ---")
+    #     print(summary_df)
+    # except Exception as e:
+    #     print(f"ERROR in location_sum_row: {e}")
+    #     return
+    # step 3: 
+    summary_df = data_df.copy()
 
     # ----- EMAIL: Only send summary_df -----
     print("\nSending email with summary only...")

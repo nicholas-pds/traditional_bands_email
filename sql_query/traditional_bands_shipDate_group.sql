@@ -1,29 +1,19 @@
-SELECT
-    CAST(ca.ShipDate AS DATE) AS ShipDate,
-
-    /* Total for all locations (your original column) */
-    COUNT(DISTINCT ca.CaseNumber) AS AllLocations,
-
-    /* One column per location – only cases whose LAST location matches */
-	COUNT(DISTINCT CASE WHEN cll.[Description] = 'Design Cart'        THEN ca.CaseNumber END) AS [DesignCart],
-  COUNT(DISTINCT CASE WHEN cll.[Description] = '3D Design'          THEN ca.CaseNumber END) AS [3DDesign],
-  COUNT(DISTINCT CASE WHEN cll.[Description] = '3D Manufacturing'   THEN ca.CaseNumber END) AS [3DManufacturing],
-	COUNT(DISTINCT CASE WHEN cll.[Description] = 'Metal Shelf'        THEN ca.CaseNumber END) AS [MetalShelf],
-  	COUNT(DISTINCT CASE WHEN cll.[Description] = 'Banding'        THEN ca.CaseNumber END) AS [BandingStation]
-
-
+  SELECT
+    COUNT(DISTINCT CASE WHEN cll.[Description] = 'Design Cart'        THEN ca.CaseNumber END) AS [Design Cart],
+    COUNT(DISTINCT CASE WHEN cll.[Description] = '3D Design'          THEN ca.CaseNumber END) AS [3D Design],
+    COUNT(DISTINCT CASE WHEN cll.[Description] = '3D Manufacturing'   THEN ca.CaseNumber END) AS [3D Manufacturing],
+    COUNT(DISTINCT CASE WHEN cll.[Description] = 'Metal Shelf'        THEN ca.CaseNumber END) AS [Metal Shelf],
+    COUNT(DISTINCT CASE WHEN cll.[Description] = 'Banding'            THEN ca.CaseNumber END) AS [Banding Station],
+    
+    -- Total: sum of all 5 location counts
+    COUNT(DISTINCT CASE WHEN cll.[Description] IN ('Metal Shelf', '3D Design', '3D Manufacturing', 'Design Cart', 'Banding') 
+                        THEN ca.CaseNumber END) AS [Total]
 FROM dbo.Cases AS ca
 INNER JOIN dbo.CaseTasks AS ct
-        ON ct.CaseID = ca.CaseID
-LEFT  JOIN dbo.CaseLogLocations AS cll
-        ON ca.LastLocationID = cll.ID
-       AND cll.[Description] IN ('Metal Shelf', '3D Design', '3D Manufacturing', 'Design Cart', 'Banding')
-
+    ON ct.CaseID = ca.CaseID
+LEFT JOIN dbo.CaseLogLocations AS cll
+    ON ca.LastLocationID = cll.ID
+    AND cll.[Description] IN ('Metal Shelf', '3D Design', '3D Manufacturing', 'Design Cart', 'Banding')
 WHERE ct.Task = 'band'
   AND ct.CompleteDate IS NULL
-  AND ca.Status IN ('In Production')
-  AND ca.ShipDate >= DATEADD(DAY, -1, CAST(GETDATE() AS DATE))   -- from yesterday
-  AND ca.ShipDate <  DATEADD(DAY, 14, CAST(GETDATE() AS DATE))   -- up to (but not including) +14 days
-
-GROUP BY CAST(ca.ShipDate AS DATE)
-ORDER BY ShipDate;
+  AND ca.Status = 'In Production';
